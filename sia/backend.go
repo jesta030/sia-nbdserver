@@ -13,7 +13,7 @@ import (
 	"gitlab.com/NebulousLabs/Sia/modules"
 	"gitlab.com/NebulousLabs/Sia/node/api/client"
 
-	"github.com/javgh/sia-nbdserver/config"
+	"github.com/jesta030/sia-nbdserver/config"
 )
 
 type (

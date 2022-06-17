@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,7 +9,10 @@ import (
 	"strings"
 )
 
-func PrependHomeDirectory(path string) string {
+// To communicate with the sia renter we need to have it's API password.
+// By default this is located at ~/.sia/apipassword and this builds the
+// absolute path
+func GetAPIPasswordPath(path string) string {
 	currentUser, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
@@ -32,13 +34,14 @@ func PrependDataDirectory(path string) string {
 	return filepath.Join(currentUser.HomeDir, ".local/share/sia-nbdserver", path)
 }
 
-func GetSocketPath() (string, error) {
+// Get unix domain socket to connect to
+func GetSocketPath(path string) string {
 	runtimeDir := os.Getenv("XDG_RUNTIME_DIR")
+	//runtimeDir := "C:/"
 	if runtimeDir == "" {
-		return "", errors.New("$XDG_RUNTIME_DIR not set")
+		log.Fatal("$XDG_RUNTIME_DIR not set")
 	}
-
-	return filepath.Join(runtimeDir, "sia-nbdserver"), nil
+	return filepath.Join(runtimeDir, path)
 }
 
 func ReadPasswordFile(path string) (string, error) {

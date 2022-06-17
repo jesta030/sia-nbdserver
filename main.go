@@ -10,18 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/javgh/sia-nbdserver/config"
-	"github.com/javgh/sia-nbdserver/nbd"
-	"github.com/javgh/sia-nbdserver/sia"
-)
-
-const (
-	defaultSize                  = 1099511627776
-	defaultHardMaxCached         = 128
-	defaultSoftMaxCached         = 96
-	defaultIdleIntervalSeconds   = 120
-	defaultSiaDaemonAddress      = "localhost:9980"
-	defaultSiaPasswordFileSuffix = ".sia/apipassword"
+	"github.com/jesta030/sia-nbdserver/config"
+	"github.com/jesta030/sia-nbdserver/nbd"
+	"github.com/jesta030/sia-nbdserver/sia"
 )
 
 func installSignalHandlers(siaBackend *sia.Backend) {
@@ -66,19 +57,25 @@ func serve(socketPath string, exportSize uint64, backendSettings sia.BackendSett
 }
 
 func main() {
-	socketPath, _ := config.GetSocketPath()
-	size := uint64(defaultSize)
-	hardMaxCached := defaultHardMaxCached
-	softMaxCached := defaultSoftMaxCached
-	idleIntervalSeconds := defaultIdleIntervalSeconds
-	siaDaemonAddress := defaultSiaDaemonAddress
-	siaPasswordFile := config.PrependHomeDirectory(defaultSiaPasswordFileSuffix)
 
-	rootDesc := "NBD server backed by Sia storage + local cache"
+	// initialise settings with defaults
+	socketPath := config.GetSocketPath("sia-nbdserver")
+	size := uint64(1 * 1024 * 1024 * 1024 * 1024)
+	hardMaxCached := 128
+	softMaxCached := 96
+	idleIntervalSeconds := 120
+	siaDaemonAddress := "localhost:9980"
+	siaPasswordFile := config.GetAPIPasswordPath(".sia/apipassword")
+
+	// Set up cobra Commands and flags, overwrite settings with user input
+	// Root command
 	rootCmd := &cobra.Command{
 		Use:   "sia-nbdserver",
-		Short: rootDesc,
-		Long:  fmt.Sprintf("%s.", rootDesc),
+		Short: "NBD server backed by Sia storage + local cache",
+		Long: `This package provides an NBD server that writes data to page files
+				in a local cache. These page files are uploaded to the sia network
+				once they become inactive or the cache fills up and are retrieved
+				when the data they store is accessed.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if socketPath == "" {
 				fmt.Println("Default socket path is $XDG_RUNTIME_DIR/sia-nbdserver," +
@@ -95,9 +92,12 @@ func main() {
 				SiaPasswordFile:  siaPasswordFile,
 			}
 			serve(socketPath, size, backendSettings)
+
+			//fmt.Printf("Starting sia-nbdserver with these settings:\nSocket path:\t\t%v\nDevice size:\t\t%v\nHard cache limit:\t%v\nSoft cache limit:\t%v\nPage file idle time:\t%v\nSia daemon address:\t%v\nSia password file:\t%v\n", socketPath, size, hardMaxCached, softMaxCached, idleIntervalSeconds, siaDaemonAddress, siaPasswordFile)
 		},
 	}
 
+	// Flags
 	rootCmd.PersistentFlags().StringVarP(&socketPath, "unix", "u", socketPath,
 		"unix domain socket")
 	rootCmd.PersistentFlags().Uint64VarP(&size, "size", "s", size,
