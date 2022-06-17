@@ -37,6 +37,7 @@ func PrependDataDirectory(path string) string {
 // Get unix domain socket to connect to
 func GetSocketPath(path string) string {
 	runtimeDir := os.Getenv("XDG_RUNTIME_DIR")
+	//runtimeDir := "C:/"
 	if runtimeDir == "" {
 		log.Fatal("$XDG_RUNTIME_DIR not set")
 	}
