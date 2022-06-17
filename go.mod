@@ -1,4 +1,4 @@
-module github.com/javgh/sia-nbdserver
+module github.com/jesta030/sia-nbdserver
 
 go 1.12
 
